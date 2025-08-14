@@ -531,6 +531,12 @@ public class AutomobileEntity extends Entity implements RenderableAutomobile, En
     public void tick() {
         boolean first = this.firstTick;
 
+        /*
+        if (getControllingPassenger() instanceof Player) {
+            Automobility.LOGGER.info(Boolean.toString(this.automobileOnGround()));
+        }
+        */
+
         if (lastWheelAngle != wheelAngle) markDirty();
         lastWheelAngle = wheelAngle;
 
@@ -757,6 +763,12 @@ public class AutomobileEntity extends Entity implements RenderableAutomobile, En
         this.grip = 1 - ((Mth.clamp((level().getBlockState(blockBelow).getBlock().getFriction() - 0.6f) / 0.4f, 0, 1) * (1 - stats.getGrip() * 0.8f)));
         this.grip *= this.grip;
 
+
+        /*if (getControllingPassenger() instanceof Player) {
+            //Automobility.LOGGER.info(Boolean.toString(Shapes.joinIsNotEmpty(blockShape, groundCuboid, BooleanOp.AND)));
+            Automobility.LOGGER.info(level().getBlockState(this.blockPosition()).getBlock().toString());
+            Automobility.LOGGER.info(this.blockPosition().toString());
+        }*/
         // Bounce on gel
         if (this.automobileOnGround && this.jumpCooldown <= 0 && level().getBlockState(this.blockPosition()).getBlock() instanceof LaunchGelBlock) {
             this.setSpeed(Math.max(this.getHSpeed(), 0.1f), Math.max(this.getVSpeed(), 0.9f));
@@ -1081,13 +1093,27 @@ public class AutomobileEntity extends Entity implements RenderableAutomobile, En
         var shapeCtx = CollisionContext.of(this);
         if (this.level().hasChunksAt(start, end)) {
             var pos = new BlockPos.MutableBlockPos();
+            //var posAdjust = 0;
             for(int x = start.getX(); x <= end.getX(); ++x) {
-                for(int y = start.getY(); y <= end.getY(); ++y) {
+                for(int y = start.getY(); y <= end.getY(); ++y) { // for whatever reason, y's behavior gets weird below world height 0. it starts 1 block too high and only goes up by one block, instead of two like when above deepslate
                     for(int z = start.getZ(); z <= end.getZ(); ++z) {
-                        pos.set(x, y, z);
+                        pos.set(x, y + (this.blockPosition().getY() <= 0 ? -1 : 0), z); // this can however be fixed by just. moving it back down by 1 if below or equal to 0
+                                                                                        // my best guess is it has something to do with the rounding on the int casts when setting the value of start
                         var state = this.level().getBlockState(pos);
                         var blockShape = state.getCollisionShape(this.level(), pos, shapeCtx).move(pos.getX(), pos.getY(), pos.getZ());
                         this.automobileOnGround |= Shapes.joinIsNotEmpty(blockShape, groundCuboid, BooleanOp.AND);
+
+                        /*if (getControllingPassenger() instanceof Player) {
+                            //Automobility.LOGGER.info(Boolean.toString(Shapes.joinIsNotEmpty(blockShape, groundCuboid, BooleanOp.AND)));
+                            //Automobility.LOGGER.info(level().getBlockState(this.blockPosition()).getBlock().toString());
+                            //Automobility.LOGGER.info(level().getBlockState(this.blockPosition()).toString());
+                            Automobility.LOGGER.info(level().getBlockState(new BlockPos.MutableBlockPos().set(0, -61, 0)).toString());
+                            //Automobility.LOGGER.info(state.toString());
+                            Automobility.LOGGER.info(pos.toString());
+                            //Automobility.LOGGER.info(this.level().getBlockState(pos).getBlock().toString());
+                            //Automobility.LOGGER.info(Boolean.toString(this.level().isOutsideBuildHeight(pos.getY())));
+                        }*/
+
                         this.isFloorDirectlyBelow |= Shapes.joinIsNotEmpty(blockShape, floorCuboid, BooleanOp.AND);
                         wallHit |= Shapes.joinIsNotEmpty(blockShape, wallCuboid, BooleanOp.AND);
                         stepWallHit |= Shapes.joinIsNotEmpty(blockShape, stepWallCuboid, BooleanOp.AND);
@@ -1095,11 +1121,22 @@ public class AutomobileEntity extends Entity implements RenderableAutomobile, En
                 }
             }
         }
+        /*
+        if (getControllingPassenger() instanceof Player) {
+            Automobility.LOGGER.info(Boolean.toString(this.isFloorDirectlyBelow));
+        }
+        */
         this.touchingWall = (wallHit && stepWallHit);
 
         var otherColliders = new HashSet<CollisionArea>();
         this.accumulateCollisionAreas(otherColliders);
         this.automobileOnGround |= otherColliders.stream().anyMatch(col -> col.boxIntersects(groundBox));
+        /*
+        if (getControllingPassenger() instanceof Player) {
+            Automobility.LOGGER.info(Boolean.toString(otherColliders.stream().anyMatch(col -> col.boxIntersects(groundBox))));
+        }
+        */
+        //this.automobileOnGround = true;
     }
 
     public void lerpTo(double x, double y, double z, float yaw, float pitch, int interpolationSteps, boolean interpolate) {

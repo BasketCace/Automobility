@@ -1,5 +1,6 @@
 package io.github.foundationgames.automobility;
 
+import com.mojang.logging.LogUtils;
 import io.github.foundationgames.automobility.block.AutomobilityBlocks;
 import io.github.foundationgames.automobility.entity.AutomobilityEntities;
 import io.github.foundationgames.automobility.item.AutomobilityItems;
@@ -22,9 +23,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.Block;
+import org.slf4j.Logger;
 
 public class Automobility {
     public static final String MOD_ID = InitlessConstants.AUTOMOBILITY;
+
+    public static final Logger LOGGER = LogUtils.getLogger();
+
 
     public static CreativeTabQueue TAB = new CreativeTabQueue(rl("automobility"));
     public static CreativeTabQueue PREFAB_TAB = new CreativeTabQueue(rl("automobility_prefabs"));
