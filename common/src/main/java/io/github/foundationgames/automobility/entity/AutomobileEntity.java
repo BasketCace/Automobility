@@ -1070,8 +1070,8 @@ public class AutomobileEntity extends Entity implements RenderableAutomobile, En
         var wid = (b.getXsize() + b.getZsize()) * 0.5f;
         var floorBox = new AABB(b.minX + (wid * 0.94), b.minY - 0.05, b.minZ + (wid * 0.94), b.maxX - (wid * 0.94), b.minY, b.maxZ - (wid * 0.94));
         var wallBox = b.deflate(0.05).move(this.lastVelocity.normalize().scale(0.12));
-        var start = new BlockPos((int) (b.minX - 0.1), (int) (b.minY - 0.2), (int) (b.minZ - 0.1));
-        var end = new BlockPos((int) (b.maxX + 0.1), (int) (b.maxY + 0.2 + this.maxUpStep()), (int) (b.maxZ + 0.1));
+        var start = new BlockPos((int) Math.floor(b.minX - 0.1), (int) Math.floor(b.minY - 0.2), (int) Math.floor(b.minZ - 0.1));
+        var end = new BlockPos((int) Math.floor(b.maxX + 0.1), (int) Math.floor(b.maxY + 0.2 + this.maxUpStep()), (int) Math.floor(b.maxZ + 0.1));
         var groundCuboid = Shapes.create(groundBox);
         var floorCuboid = Shapes.create(floorBox);
         var wallCuboid = Shapes.create(wallBox);
@@ -1079,14 +1079,13 @@ public class AutomobileEntity extends Entity implements RenderableAutomobile, En
         boolean wallHit = false;
         boolean stepWallHit = false;
         var shapeCtx = CollisionContext.of(this);
-        var belowZero = this.blockPosition().getY() <= 0 ? -1 : 0;
         if (this.level().hasChunksAt(start, end)) {
             var pos = new BlockPos.MutableBlockPos();
             for(int x = start.getX(); x <= end.getX(); ++x) {
-                for(int y = start.getY(); y <= end.getY(); ++y) { // for whatever reason, y's behavior gets weird below world height 0. it starts 1 block too high and only goes up by one block, instead of two like when above deepslate
+                for(int y = start.getY(); y <= end.getY(); ++y) {
                     for(int z = start.getZ(); z <= end.getZ(); ++z) {
-                        pos.set(x, y + belowZero, z); // this can however be fixed by just. moving it back down by 1 if below or equal to 0
-                        var state = this.level().getBlockState(pos);                     // my best guess is it has something to do with the rounding on the int casts when setting the value of start
+                        pos.set(x, y, z);
+                        var state = this.level().getBlockState(pos);             
                         var blockShape = state.getCollisionShape(this.level(), pos, shapeCtx).move(pos.getX(), pos.getY(), pos.getZ());
                         this.automobileOnGround |= Shapes.joinIsNotEmpty(blockShape, groundCuboid, BooleanOp.AND);
                         this.isFloorDirectlyBelow |= Shapes.joinIsNotEmpty(blockShape, floorCuboid, BooleanOp.AND);
