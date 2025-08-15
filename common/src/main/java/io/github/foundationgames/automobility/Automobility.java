@@ -53,6 +53,8 @@ public class Automobility {
         initOther();
 
         CommonPackets.init();
+
+        //Automobility.LOGGER.info("Hello from Automobility"); // example so i dont forget how to log lol
     }
 
     public static void initOther() {
